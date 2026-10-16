@@ -3,6 +3,7 @@ import { eq } from "drizzle-orm";
 import { contracts, type Database } from "@stellarlens/db";
 import { DATABASE } from "../database/database.module";
 import { CreateContractDto } from "./dto/create-contract.dto";
+import { UpdateContractDto } from "./dto/update-contract.dto";
 
 @Injectable()
 export class ContractsService {
@@ -29,6 +30,20 @@ export class ContractsService {
     if (!contract) {
       throw new NotFoundException(`contract ${id} not found`);
     }
+    return contract;
+  }
+
+  async update(id: number, dto: UpdateContractDto) {
+    const [contract] = await this.db
+      .update(contracts)
+      .set({ name: dto.name ?? null })
+      .where(eq(contracts.id, id))
+      .returning();
+
+    if (!contract) {
+      throw new NotFoundException(`contract ${id} not found`);
+    }
+
     return contract;
   }
 }

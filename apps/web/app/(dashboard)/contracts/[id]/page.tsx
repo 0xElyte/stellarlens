@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ContractHeader } from "@/components/ContractHeader";
 import { EventsTable } from "@/components/EventsTable";
 import { StatsCards } from "@/components/StatsCards";
 import { WebhooksManager } from "@/components/WebhooksManager";
@@ -28,13 +29,11 @@ export default async function ContractDetailPage({ params }: { params: { id: str
     throw err;
   }
 
+  const authenticated = Boolean(session);
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold">{contract.name ?? contract.address}</h1>
-        <p className="mt-1 font-mono text-xs text-gray-500">{contract.address}</p>
-        <p className="text-sm text-gray-500">{contract.network}</p>
-      </div>
+      <ContractHeader contract={contract} authenticated={authenticated} />
 
       <StatsCards stats={stats} />
 
@@ -52,7 +51,7 @@ export default async function ContractDetailPage({ params }: { params: { id: str
 
       <div>
         <h2 className="mb-3 text-lg font-semibold">Webhooks</h2>
-        <WebhooksManager contractId={contractId} authenticated={Boolean(session)} />
+        <WebhooksManager contractId={contractId} authenticated={authenticated} />
       </div>
     </div>
   );

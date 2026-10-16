@@ -63,4 +63,41 @@ describe("contracts (e2e)", () => {
     const response = await request(getApp().getHttpServer()).get("/contracts/999999").set("x-api-key", apiKey);
     expect(response.status).toBe(404);
   });
+
+  it("updates a contract name via PATCH /contracts/:id", async () => {
+    const registerResponse = await request(getApp().getHttpServer())
+      .post("/contracts")
+      .set("x-api-key", apiKey)
+      .send({ address: "CONTRACT_PATCH_A", network: "testnet", name: "Initial Name" });
+
+    const contractId = registerResponse.body.id;
+
+    const patchResponse = await request(getApp().getHttpServer())
+      .patch(`/contracts/${contractId}`)
+      .set("x-api-key", apiKey)
+      .send({ name: "Updated Name" });
+
+    expect(patchResponse.status).toBe(200);
+    expect(patchResponse.body).toMatchObject({
+      id: contractId,
+      address: "CONTRACT_PATCH_A",
+      network: "testnet",
+      name: "Updated Name"
+    });
+
+    const getResponse = await request(getApp().getHttpServer())
+      .get(`/contracts/${contractId}`)
+      .set("x-api-key", apiKey);
+
+    expect(getResponse.body.name).toBe("Updated Name");
+  });
+
+  it("returns 404 when updating an unknown contract id", async () => {
+    const response = await request(getApp().getHttpServer())
+      .patch("/contracts/999999")
+      .set("x-api-key", apiKey)
+      .send({ name: "Updated Name" });
+
+    expect(response.status).toBe(404);
+  });
 });
