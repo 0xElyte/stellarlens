@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { login, type LoginState } from "@/app/login/actions";
 
@@ -20,10 +21,27 @@ function SubmitButton() {
 
 export function LoginForm() {
   const [state, formAction] = useFormState(login, initialState);
+  const [error, setError] = useState<string | undefined>(state.error);
+
+  useEffect(() => {
+    setError(state.error);
+  }, [state]);
 
   return (
-    <form action={formAction} className="w-full max-w-sm space-y-4">
-      {state.error && <p className="text-sm text-red-600">{state.error}</p>}
+    <form
+      action={formAction}
+      onSubmit={() => setError(undefined)}
+      className="w-full max-w-sm space-y-4"
+    >
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="rounded border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600"
+        >
+          {error}
+        </div>
+      )}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700">
           Email
