@@ -14,6 +14,10 @@ export interface CreateContractInput {
   name?: string;
 }
 
+export interface UpdateContractInput {
+  name?: string | null;
+}
+
 export interface ContractStats {
   transferCount: number;
   uniqueSenders: number;
@@ -126,6 +130,13 @@ export function getContract(id: number): Promise<Contract> {
 export function createContract(input: CreateContractInput): Promise<Contract> {
   return apiFetch<Contract>("/contracts", {
     method: "POST",
+    body: JSON.stringify(input)
+  });
+}
+
+export function updateContract(id: number, input: UpdateContractInput): Promise<Contract> {
+  return apiFetch<Contract>(`/contracts/${id}`, {
+    method: "PATCH",
     body: JSON.stringify(input)
   });
 }
