@@ -6,29 +6,52 @@ import type { Contract } from "@/lib/api";
 
 export function ContractsTable({ contracts }: { contracts: Contract[] }) {
   const [query, setQuery] = useState("");
+  const [network, setNetwork] = useState("all");
 
+  const networks = Array.from(new Set(contracts.map((contract) => contract.network))).sort();
   const normalizedQuery = query.trim().toLowerCase();
   const visibleContracts = contracts.filter(
     (contract) =>
-      !normalizedQuery ||
-      contract.address.toLowerCase().includes(normalizedQuery) ||
-      (contract.name ?? "").toLowerCase().includes(normalizedQuery)
+      (network === "all" || contract.network === network) &&
+      (!normalizedQuery ||
+        contract.address.toLowerCase().includes(normalizedQuery) ||
+        (contract.name ?? "").toLowerCase().includes(normalizedQuery))
   );
 
   return (
     <div className="space-y-3">
-      <div className="max-w-sm">
-        <label htmlFor="contracts-search" className="sr-only">
-          Filter contracts
-        </label>
-        <input
-          id="contracts-search"
-          type="search"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          placeholder="Filter by address or name"
-          className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
-        />
+      <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="max-w-sm flex-1">
+          <label htmlFor="contracts-search" className="sr-only">
+            Filter contracts
+          </label>
+          <input
+            id="contracts-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Filter by address or name"
+            className="w-full rounded border border-gray-300 px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label htmlFor="contracts-network" className="sr-only">
+            Filter by network
+          </label>
+          <select
+            id="contracts-network"
+            value={network}
+            onChange={(event) => setNetwork(event.target.value)}
+            className="rounded border border-gray-300 px-3 py-2 text-sm"
+          >
+            <option value="all">All networks</option>
+            {networks.map((value) => (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="overflow-x-auto">
