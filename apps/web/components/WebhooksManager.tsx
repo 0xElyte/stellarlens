@@ -141,12 +141,17 @@ export function WebhooksManager({ contractId, authenticated }: { contractId: num
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[560px] border-collapse text-left text-sm">
+            <caption className="sr-only">Registered webhooks with URL, event filter and creation date</caption>
             <thead>
               <tr className="border-b border-gray-200 text-gray-500">
-                <th className="py-2 font-medium">URL</th>
-                <th className="py-2 font-medium">Events</th>
-                <th className="py-2 font-medium">Created</th>
-                {authenticated && <th className="py-2 font-medium" />}
+                <th scope="col" className="py-2 font-medium">URL</th>
+                <th scope="col" className="py-2 font-medium">Events</th>
+                <th scope="col" className="py-2 font-medium">Created</th>
+                {authenticated && (
+                  <th scope="col" className="py-2 font-medium">
+                    <span className="sr-only">Actions</span>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
