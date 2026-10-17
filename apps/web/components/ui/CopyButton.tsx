@@ -4,7 +4,16 @@ import { useEffect, useState } from "react";
 
 const CONFIRMATION_MS = 2000;
 
-export function CopyButton({ value, label = "Copy" }: { value: string; label?: string }) {
+export function CopyButton({
+  value,
+  label = "Copy",
+  ariaLabel
+}: {
+  value: string;
+  label?: string;
+  /** Describes what gets copied, e.g. "Copy contract address". Required when `label` is an icon. */
+  ariaLabel?: string;
+}) {
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -29,6 +38,7 @@ export function CopyButton({ value, label = "Copy" }: { value: string; label?: s
       <button
         type="button"
         onClick={handleCopy}
+        aria-label={ariaLabel ?? (label === "Copy" ? "Copy to clipboard" : undefined)}
         className="text-xs font-medium text-gray-600 hover:underline"
       >
         {label}

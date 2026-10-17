@@ -1,3 +1,29 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /*
+   * Consistent keyboard focus indicator for every interactive element. Uses
+   * :focus-visible so mouse clicks on buttons and links don't show a ring.
+   * `outline-none` keeps a transparent outline, which stays visible in
+   * forced-colors (Windows high contrast) mode where box-shadow rings are dropped.
+   */
+  a[href]:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  summary:focus-visible,
+  [role="button"]:focus-visible,
+  [tabindex]:not([tabindex="-1"]):focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-white;
+  }
+}
+
+@layer components {
+  /* Opt-in utility for custom interactive elements (e.g. clickable table rows). */
+  .focus-ring {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-white;
+  }
+}

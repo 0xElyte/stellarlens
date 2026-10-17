@@ -79,6 +79,9 @@ export function ContractsTable({ contracts }: { contracts: Contract[] }) {
 
       <div className="overflow-x-auto">
         <table className="w-full min-w-[480px] border-collapse text-left text-sm">
+          <caption className="sr-only">
+            Registered contracts with address, name and network. Column headers sort the table.
+          </caption>
           <thead>
             <tr className="border-b border-gray-200 text-gray-500">
               {COLUMNS.map((column) => {
@@ -86,6 +89,7 @@ export function ContractsTable({ contracts }: { contracts: Contract[] }) {
                 return (
                   <th
                     key={column.key}
+                    scope="col"
                     aria-sort={
                       direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none"
                     }

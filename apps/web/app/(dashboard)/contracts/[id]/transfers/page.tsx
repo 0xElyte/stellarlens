@@ -38,7 +38,7 @@ export default async function ContractTransfersPage({
     <div className="space-y-8">
       <div>
         <Link href={`/contracts/${contractId}`} className="text-sm text-gray-500 hover:underline">
-          ← {contract.name ?? contract.address}
+          <span aria-hidden="true">←</span> {contract.name ?? contract.address}
         </Link>
         <h1 className="mt-1 text-2xl font-bold">Transfers</h1>
       </div>
@@ -58,13 +58,17 @@ export default async function ContractTransfersPage({
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+              <caption className="sr-only">
+                Transfers for {contract.name ?? contract.address} with ledger, sender, recipient,
+                amount and transaction hash
+              </caption>
               <thead>
                 <tr className="border-b border-gray-200 text-gray-500">
-                  <th className="py-2 font-medium">Ledger</th>
-                  <th className="py-2 font-medium">From</th>
-                  <th className="py-2 font-medium">To</th>
-                  <th className="py-2 font-medium">Amount</th>
-                  <th className="py-2 font-medium">Tx hash</th>
+                  <th scope="col" className="py-2 font-medium">Ledger</th>
+                  <th scope="col" className="py-2 font-medium">From</th>
+                  <th scope="col" className="py-2 font-medium">To</th>
+                  <th scope="col" className="py-2 font-medium">Amount</th>
+                  <th scope="col" className="py-2 font-medium">Tx hash</th>
                 </tr>
               </thead>
               <tbody>
@@ -88,7 +92,7 @@ export default async function ContractTransfersPage({
               href={`/contracts/${contractId}/transfers?cursor=${transfers.nextCursor}`}
               className="rounded bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
             >
-              Next page →
+              Next page <span aria-hidden="true">→</span>
             </Link>
           </div>
         )}

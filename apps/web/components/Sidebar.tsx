@@ -28,7 +28,15 @@ export function Sidebar({ authenticated }: { authenticated: boolean }) {
           aria-label="Open menu"
           className="rounded p-2 text-gray-700 hover:bg-gray-100"
         >
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-6 w-6">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-6 w-6"
+            aria-hidden="true"
+            focusable="false"
+          >
             <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5M3.75 17.25h16.5" />
           </svg>
         </button>
@@ -57,7 +65,15 @@ export function Sidebar({ authenticated }: { authenticated: boolean }) {
             aria-label="Close menu"
             className="rounded p-1 text-gray-500 hover:bg-gray-100 md:hidden"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-5 w-5">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              className="h-5 w-5"
+              aria-hidden="true"
+              focusable="false"
+            >
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
             </svg>
           </button>

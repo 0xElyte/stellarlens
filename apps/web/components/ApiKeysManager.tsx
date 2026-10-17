@@ -113,12 +113,15 @@ export function ApiKeysManager() {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[520px] border-collapse text-left text-sm">
+            <caption className="sr-only">API keys with name, creation date and status</caption>
             <thead>
               <tr className="border-b border-gray-200 text-gray-500">
-                <th className="py-2 font-medium">Name</th>
-                <th className="py-2 font-medium">Created</th>
-                <th className="py-2 font-medium">Status</th>
-                <th className="py-2 font-medium" />
+                <th scope="col" className="py-2 font-medium">Name</th>
+                <th scope="col" className="py-2 font-medium">Created</th>
+                <th scope="col" className="py-2 font-medium">Status</th>
+                <th scope="col" className="py-2 font-medium">
+                  <span className="sr-only">Actions</span>
+                </th>
               </tr>
             </thead>
             <tbody>
