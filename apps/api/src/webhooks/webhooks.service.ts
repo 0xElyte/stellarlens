@@ -1,10 +1,11 @@
 import { randomBytes } from "node:crypto";
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
-import { and, eq } from "drizzle-orm";
-import { webhooks, type Database } from "@stellarlens/db";
+import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { and, desc, eq, lt } from "drizzle-orm";
+import { webhookDeliveries, webhooks, type Database } from "@stellarlens/db";
 import { ContractsService } from "../contracts/contracts.service";
 import { DATABASE } from "../database/database.module";
 import { CreateWebhookDto } from "./dto/create-webhook.dto";
+import { FindDeliveriesQueryDto } from "./dto/find-deliveries-query.dto";
 
 @Injectable()
 export class WebhooksService {
@@ -15,6 +16,14 @@ export class WebhooksService {
 
   async register(contractId: number, dto: CreateWebhookDto) {
     await this.contractsService.findOne(contractId);
+
+    const [existing] = await this.db
+      .select({ id: webhooks.id })
+      .from(webhooks)
+      .where(and(eq(webhooks.contractId, contractId), eq(webhooks.url, dto.url)));
+    if (existing) {
+      throw new ConflictException(`webhook ${existing.id} is already registered for ${dto.url} on contract ${contractId}`);
+    }
 
     const secret = randomBytes(32).toString("hex");
     const eventTypes = dto.eventTypes && dto.eventTypes.length > 0 ? dto.eventTypes : null;
@@ -45,5 +54,44 @@ export class WebhooksService {
     if (!deleted) {
       throw new NotFoundException(`webhook ${id} not found for contract ${contractId}`);
     }
+  }
+
+  async findDeliveries(contractId: number, id: number, query: FindDeliveriesQueryDto) {
+    await this.contractsService.findOne(contractId);
+
+    const [webhook] = await this.db
+      .select({ id: webhooks.id })
+      .from(webhooks)
+      .where(and(eq(webhooks.id, id), eq(webhooks.contractId, contractId)));
+
+    if (!webhook) {
+      throw new NotFoundException(`webhook ${id} not found for contract ${contractId}`);
+    }
+
+    const conditions = [eq(webhookDeliveries.webhookId, id)];
+
+    if (query.cursor !== undefined) {
+      conditions.push(lt(webhookDeliveries.id, query.cursor));
+    }
+
+    const rows = await this.db
+      .select({
+        id: webhookDeliveries.id,
+        status: webhookDeliveries.status,
+        attempts: webhookDeliveries.attempts,
+        lastError: webhookDeliveries.lastError,
+        deliveredAt: webhookDeliveries.deliveredAt,
+        createdAt: webhookDeliveries.createdAt
+      })
+      .from(webhookDeliveries)
+      .where(and(...conditions))
+      .orderBy(desc(webhookDeliveries.id))
+      .limit(query.limit + 1);
+
+    const hasMore = rows.length > query.limit;
+    const data = hasMore ? rows.slice(0, query.limit) : rows;
+    const nextCursor = hasMore ? data[data.length - 1].id : null;
+
+    return { data, nextCursor };
   }
 }
