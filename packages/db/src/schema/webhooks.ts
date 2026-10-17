@@ -15,3 +15,19 @@ export const webhooks = pgTable(
   },
   (table) => [index("webhooks_contract_id_idx").on(table.contractId)]
 );
+
+export const webhookDeliveries = pgTable(
+  "webhook_deliveries",
+  {
+    id: serial("id").primaryKey(),
+    webhookId: integer("webhook_id")
+      .notNull()
+      .references(() => webhooks.id, { onDelete: "cascade" }),
+    status: text("status").notNull(),
+    attempts: integer("attempts").default(0).notNull(),
+    lastError: text("last_error"),
+    deliveredAt: timestamp("delivered_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+  },
+  (table) => [index("webhook_deliveries_webhook_id_idx").on(table.webhookId)]
+);
