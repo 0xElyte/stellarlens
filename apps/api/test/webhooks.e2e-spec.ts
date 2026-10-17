@@ -32,6 +32,40 @@ describe("webhooks (e2e)", () => {
     expect(typeof response.body.secret).toBe("string");
   });
 
+  it("returns 409 registering a url that's already registered for the contract", async () => {
+    const contractId = await registerContract(apiKey, "CONTRACT_WEBHOOKS_G");
+    await request(getApp().getHttpServer())
+      .post(`/contracts/${contractId}/webhooks`)
+      .set("x-api-key", apiKey)
+      .send({ url: "https://example.com/webhook" });
+
+    const response = await request(getApp().getHttpServer())
+      .post(`/contracts/${contractId}/webhooks`)
+      .set("x-api-key", apiKey)
+      .send({ url: "https://example.com/webhook" });
+    expect(response.status).toBe(409);
+
+    const listResponse = await request(getApp().getHttpServer())
+      .get(`/contracts/${contractId}/webhooks`)
+      .set("x-api-key", apiKey);
+    expect(listResponse.body).toHaveLength(1);
+  });
+
+  it("allows the same url to be registered for a different contract", async () => {
+    const contractA = await registerContract(apiKey, "CONTRACT_WEBHOOKS_H");
+    const contractB = await registerContract(apiKey, "CONTRACT_WEBHOOKS_I");
+    await request(getApp().getHttpServer())
+      .post(`/contracts/${contractA}/webhooks`)
+      .set("x-api-key", apiKey)
+      .send({ url: "https://example.com/webhook" });
+
+    const response = await request(getApp().getHttpServer())
+      .post(`/contracts/${contractB}/webhooks`)
+      .set("x-api-key", apiKey)
+      .send({ url: "https://example.com/webhook" });
+    expect(response.status).toBe(201);
+  });
+
   it("defaults eventTypes to null when omitted, meaning all events", async () => {
     const contractId = await registerContract(apiKey, "CONTRACT_WEBHOOKS_B");
 

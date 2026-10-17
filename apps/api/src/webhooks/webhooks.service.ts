@@ -1,5 +1,5 @@
 import { randomBytes } from "node:crypto";
-import { Inject, Injectable, NotFoundException } from "@nestjs/common";
+import { ConflictException, Inject, Injectable, NotFoundException } from "@nestjs/common";
 import { and, eq } from "drizzle-orm";
 import { webhooks, type Database } from "@stellarlens/db";
 import { ContractsService } from "../contracts/contracts.service";
@@ -15,6 +15,14 @@ export class WebhooksService {
 
   async register(contractId: number, dto: CreateWebhookDto) {
     await this.contractsService.findOne(contractId);
+
+    const [existing] = await this.db
+      .select({ id: webhooks.id })
+      .from(webhooks)
+      .where(and(eq(webhooks.contractId, contractId), eq(webhooks.url, dto.url)));
+    if (existing) {
+      throw new ConflictException(`webhook ${existing.id} is already registered for ${dto.url} on contract ${contractId}`);
+    }
 
     const secret = randomBytes(32).toString("hex");
     const eventTypes = dto.eventTypes && dto.eventTypes.length > 0 ? dto.eventTypes : null;
