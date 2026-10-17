@@ -3,9 +3,12 @@
 import { useEffect, useState } from "react";
 import type { EventRow } from "@/lib/api";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { LoadingState } from "@/components/ui/LoadingState";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 const POLL_INTERVAL_MS = 10000;
+const SKELETON_ROW_COUNT = 5;
+// Bar widths per column, roughly matching ledger, tx hash, topic and decoded data.
+const SKELETON_COLUMN_WIDTHS = ["w-16", "w-28", "w-40", "w-48"];
 
 function formatTopic(event: EventRow): string {
   const topic = event.decodedData?.decoded?.topic;
@@ -21,6 +24,46 @@ function formatValue(event: EventRow): string {
     return "—";
   }
   return typeof value === "string" ? value : JSON.stringify(value);
+}
+
+function EventsTableHead() {
+  return (
+    <thead>
+      <tr className="border-b border-gray-200 text-gray-500">
+        <th className="py-2 font-medium">Ledger</th>
+        <th className="py-2 font-medium">Tx hash</th>
+        <th className="py-2 font-medium">Topic</th>
+        <th className="py-2 font-medium">Decoded data</th>
+      </tr>
+    </thead>
+  );
+}
+
+/**
+ * Placeholder rows shown while events load. Uses the same table, header and
+ * row padding as the real table so nothing shifts when the data arrives.
+ */
+export function EventsTableSkeleton() {
+  return (
+    <div className="overflow-x-auto" aria-busy="true">
+      <span className="sr-only">Loading events…</span>
+      <table className="w-full min-w-[640px] border-collapse text-left text-sm">
+        <EventsTableHead />
+        <tbody>
+          {Array.from({ length: SKELETON_ROW_COUNT }, (_, row) => (
+            <tr key={row} className="border-b border-gray-100">
+              {SKELETON_COLUMN_WIDTHS.map((width) => (
+                <td key={width} className="py-2">
+                  {/* my-0.5 + h-4 matches the 1.25rem line height of a text-sm row. */}
+                  <Skeleton className={`my-0.5 h-4 ${width}`} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
 }
 
 export function EventsTable({ contractId }: { contractId: number }) {
@@ -63,7 +106,7 @@ export function EventsTable({ contractId }: { contractId: number }) {
   }, [contractId]);
 
   if (loading) {
-    return <LoadingState label="Loading events…" />;
+    return <EventsTableSkeleton />;
   }
 
   return (
@@ -77,14 +120,7 @@ export function EventsTable({ contractId }: { contractId: number }) {
       ) : (
         <div className="overflow-x-auto">
           <table className="w-full min-w-[640px] border-collapse text-left text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 text-gray-500">
-                <th className="py-2 font-medium">Ledger</th>
-                <th className="py-2 font-medium">Tx hash</th>
-                <th className="py-2 font-medium">Topic</th>
-                <th className="py-2 font-medium">Decoded data</th>
-              </tr>
-            </thead>
+            <EventsTableHead />
             <tbody>
               {events.map((event) => (
                 <tr key={event.id} className="border-b border-gray-100">
