@@ -4,9 +4,26 @@ import Link from "next/link";
 import { useState } from "react";
 import type { Contract } from "@/lib/api";
 
+type SortKey = "address" | "name" | "network";
+
+const COLUMNS: { key: SortKey; label: string }[] = [
+  { key: "address", label: "Address" },
+  { key: "name", label: "Name" },
+  { key: "network", label: "Network" }
+];
+
 export function ContractsTable({ contracts }: { contracts: Contract[] }) {
   const [query, setQuery] = useState("");
   const [network, setNetwork] = useState("all");
+  const [sort, setSort] = useState<{ key: SortKey; direction: "asc" | "desc" } | null>(null);
+
+  function handleSort(key: SortKey) {
+    setSort((current) =>
+      current?.key === key
+        ? { key, direction: current.direction === "asc" ? "desc" : "asc" }
+        : { key, direction: "asc" }
+    );
+  }
 
   const networks = Array.from(new Set(contracts.map((contract) => contract.network))).sort();
   const normalizedQuery = query.trim().toLowerCase();
@@ -17,6 +34,12 @@ export function ContractsTable({ contracts }: { contracts: Contract[] }) {
         contract.address.toLowerCase().includes(normalizedQuery) ||
         (contract.name ?? "").toLowerCase().includes(normalizedQuery))
   );
+  if (sort) {
+    visibleContracts.sort((a, b) => {
+      const result = (a[sort.key] ?? "").localeCompare(b[sort.key] ?? "");
+      return sort.direction === "asc" ? result : -result;
+    });
+  }
 
   return (
     <div className="space-y-3">
@@ -58,9 +81,29 @@ export function ContractsTable({ contracts }: { contracts: Contract[] }) {
         <table className="w-full min-w-[480px] border-collapse text-left text-sm">
           <thead>
             <tr className="border-b border-gray-200 text-gray-500">
-              <th className="py-2 font-medium">Address</th>
-              <th className="py-2 font-medium">Name</th>
-              <th className="py-2 font-medium">Network</th>
+              {COLUMNS.map((column) => {
+                const direction = sort?.key === column.key ? sort.direction : null;
+                return (
+                  <th
+                    key={column.key}
+                    aria-sort={
+                      direction === "asc" ? "ascending" : direction === "desc" ? "descending" : "none"
+                    }
+                    className="py-2 font-medium"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handleSort(column.key)}
+                      className="inline-flex items-center gap-1 hover:text-gray-900"
+                    >
+                      {column.label}
+                      <span aria-hidden="true" className={direction ? "" : "text-gray-300"}>
+                        {direction === "desc" ? "↓" : "↑"}
+                      </span>
+                    </button>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
