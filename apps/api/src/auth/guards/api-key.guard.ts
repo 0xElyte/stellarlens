@@ -1,10 +1,12 @@
 import { createHash } from "node:crypto";
-import { CanActivate, ExecutionContext, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { and, eq, isNull } from "drizzle-orm";
 import { apiKeys, type Database } from "@stellarlens/db";
 import { DATABASE } from "../../database/database.module";
 import { IS_PUBLIC_KEY } from "../decorators/public.decorator";
+
+const MUTATING_METHODS = new Set(["POST", "PATCH", "PUT", "DELETE"]);
 
 @Injectable()
 export class ApiKeyGuard implements CanActivate {
@@ -36,6 +38,11 @@ export class ApiKeyGuard implements CanActivate {
 
     if (!apiKey) {
       throw new UnauthorizedException("invalid api key");
+    }
+
+    const method = String(request.method ?? "").toUpperCase();
+    if (MUTATING_METHODS.has(method) && apiKey.scope === "read") {
+      throw new ForbiddenException("read-scoped api key cannot perform mutating requests");
     }
 
     request.apiKey = apiKey;
