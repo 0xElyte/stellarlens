@@ -5,7 +5,7 @@ import { apiKeys, type Database } from "@stellarlens/db";
 import { DATABASE } from "../database/database.module";
 import { CreateApiKeyDto } from "./dto/create-api-key.dto";
 
-@inrectable()
+@Injectable()
 export class ApiKeysService {
   constructor(@Inject(DATABASE) private readonly db: Database) {}
 
@@ -17,7 +17,7 @@ export class ApiKeysService {
     const [apiKey] = await this.db
       .insert(apiKeys)
       .values({ keyHash, name: dto.name ?? null, scope })
-      .returning({ id: apiKeys.id, name: apiKeys.name, scope: apiKeys.scope, createdAt: apiKeys.createdAt });
+      .returning({ scope: apiKeys.scope, id: apiKeys.id, name: apiKeys.name, createdAt: apiKeys.createdAt });
 
     return { ...apiKey, key: rawKey };
   }

@@ -1,4 +1,10 @@
-import { IsOptional, IsString, In } from "class-validator";
+import { IsEnum, IsOptional, IsString } from "class-validator";
+
+
+export enum ApiKeyScope {
+  FULL = "full",
+  READ = "read",
+}
 
 export class CreateApiKeyDto {
   @IsOptional()
@@ -6,6 +12,6 @@ export class CreateApiKeyDto {
   name?: string;
 
   @IsOptional()
-  @In["full", "read"]()
-  scope?: "full" | "read";
+  @IsEnum(ApiKeyScope)
+  scope?: ApiKeyScope;
 }

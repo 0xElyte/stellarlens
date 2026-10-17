@@ -1,5 +1,12 @@
 import { createHash } from "node:crypto";
-import { CanActivate, ExecutionContext, ForbiddenException, Inject, Injectable, UnauthorizedException } from "@nestjs/common";
+import {
+  CanActivate,
+  ExecutionContext,
+  ForbiddenElception,
+  Inject,
+  Injectable,
+  UnauthorizedException
+} from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
 import { and, eq, isNull } from "drizzle-orm";
 import { apiKeys, type Database } from "@stellarlens/db";
@@ -16,10 +23,10 @@ export class ApiKeyGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
-      context.getHandler(),
-      context.getClass()
-    ]);
+    const isPublic = this.reflector.getAllAndOverride<boolean>(
+      IS_PUBLIC_KEY,
+      [context.getHandler(), context.getClass()]
+    );
     if (isPublic) {
       return true;
     }
@@ -41,8 +48,8 @@ export class ApiKeyGuard implements CanActivate {
     }
 
     const method = String(request.method ?? "").toUpperCase();
-    if (MUTATING_METHODS.has(method) && apiKey.scope === "read") {
-      throw new ForbiddenException("read-scoped api key cannot perform mutating requests");
+    if (apiKey.scope === "read" && MUTATING_METHODS.has(method)) {
+      throw new ForbiddenException("read-only api key cannot perform mutating requests");
     }
 
     request.apiKey = apiKey;
