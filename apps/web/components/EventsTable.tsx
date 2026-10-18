@@ -5,7 +5,7 @@ import type { Dispatch, SetStateAction } from "react";
 import type { EventRow, EventsPage } from "@/lib/api";
 import { downloadCsv, eventsToCsv } from "@/lib/csvExport";
 import { EmptyState } from "@/components/ui/EmptyState";
-import { LoadingState } from "@/components/ui/LoadingState";
+import { Skeleton } from "@/components/ui/Skeleton";
 
 const POLL_INTERVAL_MS = 10000;
 // The api caps `limit` at 100, so exports walk the cursor in pages of this size.
@@ -180,7 +180,7 @@ export function EventsTable({ contractId }: { contractId: number }) {
   }
 
   if (loading) {
-    return <LoadingState label="Loading events…" />;
+    return <EventsTableSkeleton />;
   }
 
   return (
