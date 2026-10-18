@@ -1,4 +1,77 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { ContractStats } from "@/lib/api";
+import { useVisibilityPolling } from "@/lib/useVisibilityPolling";
+
+const POLL_INTERVAL_MS = 15000;
+
+/**
+ * Renders the contract stats cards. When `contractId` is given, the cards
+ * poll for fresh stats while the tab is visible and show a manual refresh
+ * button that works alongside the background polling.
+ */
+export function StatsCards({ stats, contractId }: { stats: ContractStats; contractId?: number }) {
+  const [liveStats, setLiveStats] = useState(stats);
+  const [refreshing, setRefreshing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const inFlight = useRef(false);
+
+  useEffect(() => {
+    setLiveStats(stats);
+  }, [stats]);
+
+  const refresh = useCallback(async () => {
+    // Skip overlapping requests, e.g. a manual refresh landing mid-poll.
+    if (contractId === undefined || inFlight.current) {
+      return;
+    }
+    inFlight.current = true;
+    setRefreshing(true);
+    try {
+      const response = await fetch(`/api/contracts/${contractId}/stats`, { cache: "no-store" });
+      if (!response.ok) {
+        throw new Error(`request failed with ${response.status}`);
+      }
+      setLiveStats((await response.json()) as ContractStats);
+      setError(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "failed to refresh stats");
+    } finally {
+      inFlight.current = false;
+      setRefreshing(false);
+    }
+  }, [contractId]);
+
+  useVisibilityPolling(refresh, POLL_INTERVAL_MS, { enabled: contractId !== undefined });
+
+  const cards = [
+    { label: "Transfers", value: liveStats.transferCount.toLocaleString() },
+    { label: "Unique senders", value: liveStats.uniqueSenders.toLocaleString() },
+    { label: "Unique receivers", value: liveStats.uniqueReceivers.toLocaleString() }
+  ];
+
+  return (
+    <div className="space-y-4">
+      {contractId !== undefined && (
+        <div className="flex items-center justify-end gap-3">
+          {error && (
+            <p role="status" className="text-sm text-red-600">
+              Couldn&apos;t refresh stats: {error}
+            </p>
+          )}
+          <button
+            type="button"
+            onClick={refresh}
+            disabled={refreshing}
+            aria-label="Refresh contract stats"
+            className="rounded border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+          >
+            {refreshing ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      )}
+
 import { Skeleton } from "@/components/ui/Skeleton";
 
 const CARD_LABELS = ["Transfers", "Unique senders", "Unique receivers"] as const;
@@ -38,6 +111,11 @@ export function StatsCards({ stats, loading = false }: { stats?: ContractStats; 
 
       <div className="rounded border border-gray-200 p-4">
         <div className="text-xs font-medium uppercase tracking-wide text-gray-500">Volume by asset</div>
+        {liveStats.volumeByAsset.length === 0 ? (
+          <p className="mt-2 text-sm text-gray-400">No transfer volume yet.</p>
+        ) : (
+          <ul className="mt-2 space-y-1 text-sm">
+            {liveStats.volumeByAsset.map((entry) => (
         {!data ? (
           <ul className="mt-2 space-y-1">
             {Array.from({ length: SKELETON_VOLUME_ROWS }, (_, index) => (
