@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import {
   CanActivate,
   ExecutionContext,
-  ForbiddenElception,
+  ForbiddenException,
   Inject,
   Injectable,
   UnauthorizedException
@@ -44,6 +44,10 @@ export class ApiKeyGuard implements CanActivate {
       .where(and(eq(apiKeys.keyHash, keyHash), isNull(apiKeys.revokedAt)));
 
     if (!apiKey) {
+      throw new UnauthorizedException("invalid api key");
+    }
+
+    if (apiKey.expiresAt && apiKey.expiresAt.getTime() <= Date.now()) {
       throw new UnauthorizedException("invalid api key");
     }
 
