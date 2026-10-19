@@ -48,6 +48,10 @@ export class ApiKeyGuard implements CanActivate {
       throw new UnauthorizedException("invalid api key");
     }
 
+    if (apiKey.expiresAt && apiKey.expiresAt.getTime() <= Date.now()) {
+      throw new UnauthorizedException("invalid api key");
+    }
+
     const method = String(request.method ?? "").toUpperCase();
     if (apiKey.scope === "read" && MUTATING_METHODS.has(method)) {
       throw new ForbiddenException("read-only api key cannot perform mutating requests");
