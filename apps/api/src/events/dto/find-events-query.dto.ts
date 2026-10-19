@@ -16,7 +16,7 @@ export class FindEventsQueryDto {
   limit: number = 20;
 
   @IsOptional()
-  IsString()
+  @IsString()
   topic?: string;
 
   @IsOptional()
@@ -40,4 +40,6 @@ export class FindEventsQueryDto {
   @IsOptional()
   @IsISO8601()
   to: string;
+}
+  to?: string;
 }
