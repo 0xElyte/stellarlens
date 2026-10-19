@@ -1,4 +1,4 @@
-import { webhookDeliveries } from "@stellarlens/db";
+import { events, webhookDeliveries } from "@stellarlens/db";
 import request from "supertest";
 import { beforeEach, describe, expect, it } from "vitest";
 import { createApiKey } from "./helpers";
@@ -138,9 +138,14 @@ describe("webhooks (e2e)", () => {
     const webhookId = created.body.id;
 
     const db = getTestDb();
+    const [event] = await db
+      .insert(events)
+      .values({ contractId, ledger: 1, txHash: "a".repeat(64), topic: "[]" })
+      .returning({ id: events.id });
     for (let i = 0; i < 3; i += 1) {
       await db.insert(webhookDeliveries).values({
         webhookId,
+        eventId: event.id,
         status: i === 2 ? "failed" : "delivered",
         attempts: i + 1,
         lastError: i === 2 ? "connection refused" : null,
